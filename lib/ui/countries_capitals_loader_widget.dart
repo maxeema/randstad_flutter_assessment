@@ -7,7 +7,7 @@ class CountriesCapitalsLoaderWidget extends ConsumerWidget {
 
   @override
   Widget build(context, ref) {
-    final result = ref.read(countriesCapitalsProvider);
+    final result = ref.watch(countriesCapitalsProvider);
     final isLoading = !result.hasValue;
     // Loading data
     if (isLoading) {
