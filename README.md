@@ -1,6 +1,6 @@
 # randstad_flutter_assessment
 
-<b>Randstad's Flutter Assessment (live coding session).</b>
+<b>Randstad's Flutter Assessment.</b>
 
 <h3>Task</h3>
 There is an API that returns a list of countries and their capitals.
