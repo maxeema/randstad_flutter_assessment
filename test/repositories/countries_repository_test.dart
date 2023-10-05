@@ -14,11 +14,10 @@ void main() {
         () async {
       // Arrange
       registerFallbackValue(CountriesRepository.countriesCapitalsUri);
-      final mockHttpClient = MockHttpClient();
-      final countriesRepository = CountriesRepository(client: mockHttpClient);
+      final countriesRepository = CountriesRepository(client: MockHttpClient());
 
       // Mock the HTTP response
-      when(() => mockHttpClient.get(any())).thenAnswer((_) async {
+      when(() => countriesRepository.client.get(any())).thenAnswer((_) async {
         return http.Response(
           '''
           {
@@ -57,12 +56,12 @@ void main() {
         () async {
       // Arrange
       registerFallbackValue(CountriesRepository.countriesCapitalsUri);
-      final mockHttpClient = MockHttpClient();
-      final countriesRepository = CountriesRepository(client: mockHttpClient);
+      final countriesRepository = CountriesRepository(client: MockHttpClient());
 
       // Mock the HTTP response
-      when(() => mockHttpClient.get(any())).thenAnswer((_) async {
-        return http.Response('Bad response', 500, reasonPhrase: 'Internal server error');
+      when(() => countriesRepository.client.get(any())).thenAnswer((_) async {
+        return http.Response('Bad response', 500,
+            reasonPhrase: 'Internal server error');
       });
 
       // Act and assert
