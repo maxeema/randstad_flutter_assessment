@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:randstad_flutter_assessment/ui/countries_capitals_loader_widget.dart';
+import 'package:randstad_flutter_assessment/ui/countries_capitals_async_loader_widget.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CountriesCapitalsLoaderWidget(),
+                child: CountriesCapitalsAsyncLoaderWidget(),
               ),
             ),
           ],

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:randstad_flutter_assessment/providers.dart';
 
-class CountriesCapitalsLoaderWidget extends ConsumerWidget {
-  const CountriesCapitalsLoaderWidget({super.key});
+class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
+  const CountriesCapitalsAsyncLoaderWidget({super.key});
 
   @override
   Widget build(context, ref) {
