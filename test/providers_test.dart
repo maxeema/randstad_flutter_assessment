@@ -7,19 +7,19 @@ import 'package:randstad_flutter_assessment/repositories/countries_repository.da
 class MockCountriesRepository extends Mock implements CountriesRepository {}
 
 void main() {
-  late ProviderContainer providerContainer;
-
-  setUp(() {
-    // called each time any test runs
-    providerContainer = ProviderContainer(
-      overrides: [
-        countriesRepositoryProvider
-            .overrideWithValue(MockCountriesRepository()),
-      ],
-    );
-  });
-
   group('countriesCapitalsProvider', () {
+    late ProviderContainer providerContainer;
+
+    setUp(() {
+      // called each time any test runs of the group
+      providerContainer = ProviderContainer(
+        overrides: [
+          countriesRepositoryProvider
+              .overrideWithValue(MockCountriesRepository()),
+        ],
+      );
+    });
+
     test(
         'ensure that CountriesRepository.listCountriesCapitals() is called by the provider',
         () async {
@@ -30,7 +30,7 @@ void main() {
       when(() => repository.listCountriesCapitals())
           .thenAnswer((_) async => (error: null, data: null));
 
-      // Ensure no interactions
+      // ensure 0 interactions on repository before using provider
       verifyZeroInteractions(repository);
       verifyNever(() => repository.listCountriesCapitals());
 
