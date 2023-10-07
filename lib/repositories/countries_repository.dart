@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 
 import 'country.dart';
 
+typedef ListCountriesCapitalsResult = ({dynamic error, List<Country>? data});
+
 class CountriesRepository {
   // https://countriesnow.space/api/v0.1/countries/capital
   static const authority = 'countriesnow.space';
@@ -17,7 +19,7 @@ class CountriesRepository {
   @visibleForTesting
   final http.Client client;
 
-  Future<({dynamic error, List<Country>? data})> listCountriesCapitals() async {
+  Future<ListCountriesCapitalsResult> listCountriesCapitals() async {
     try {
       final response = await client.get(countriesCapitalsUri);
       if (response.statusCode != 200) {
