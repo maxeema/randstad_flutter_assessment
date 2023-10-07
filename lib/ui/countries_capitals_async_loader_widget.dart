@@ -3,6 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:randstad_flutter_assessment/providers.dart';
 
 class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
+  @visibleForTesting
+  static const errorMessageKey = Key('error-message');
+  @visibleForTesting
+  static const progressIndicatorKey = Key('progress-indicator');
+  @visibleForTesting
+  static const countriesListKey = Key('countries-list');
+
   const CountriesCapitalsAsyncLoaderWidget({super.key});
 
   @override
@@ -16,7 +23,12 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox.square(dimension: 20, child: CircularProgressIndicator()),
+          SizedBox.square(
+            dimension: 20,
+            child: CircularProgressIndicator(
+              key: progressIndicatorKey,
+            ),
+          ),
           SizedBox(height: 8),
           Text('Loading...'),
         ],
@@ -32,6 +44,7 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text.rich(
+            key: errorMessageKey,
             textAlign: TextAlign.center,
             TextSpan(children: [
               const TextSpan(
@@ -49,22 +62,24 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
       );
     }
     // Got data
-    final capitals = value.data!;
+    final countries = value.data!;
     return ListView.builder(
-      itemCount: capitals.length,
+      key: countriesListKey,
+      itemCount: countries.length,
       itemBuilder: (context, idx) {
-        final entry = capitals[idx];
+        final country = countries[idx];
         return Card(
+          key: Key('country-${country.name}'),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Text.rich(TextSpan(children: [
               TextSpan(
-                text: entry.name,
+                text: country.name,
                 style: const TextStyle(fontWeight: FontWeight.normal),
               ),
               const TextSpan(text: ' '),
               TextSpan(
-                text: entry.capital,
+                text: country.capital,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ])),
