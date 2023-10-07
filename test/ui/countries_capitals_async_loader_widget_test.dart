@@ -18,16 +18,7 @@ void main() {
       }
 
       // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          countriesCapitalsProvider.overrideWith(mockCountriesCapitalsProvider)
-        ],
-        child: const MaterialApp(
-          home: Scaffold(
-            body: CountriesCapitalsAsyncLoaderWidget(),
-          ),
-        ),
-      ));
+      await tester.pumpWidget(_createWidget(mockCountriesCapitalsProvider));
 
       // Expect to find a progress indicator
       expect(
@@ -54,16 +45,7 @@ void main() {
       }
 
       // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          countriesCapitalsProvider.overrideWith(mockCountriesCapitalsProvider)
-        ],
-        child: const MaterialApp(
-          home: Scaffold(
-            body: CountriesCapitalsAsyncLoaderWidget(),
-          ),
-        ),
-      ));
+      await tester.pumpWidget(_createWidget(mockCountriesCapitalsProvider));
 
       // The first frame is a loading state and should be a progress indicator
       expect(
@@ -106,16 +88,7 @@ void main() {
       }
 
       // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(ProviderScope(
-        overrides: [
-          countriesCapitalsProvider.overrideWith(mockCountriesCapitalsProvider)
-        ],
-        child: const MaterialApp(
-          home: Scaffold(
-            body: CountriesCapitalsAsyncLoaderWidget(),
-          ),
-        ),
-      ));
+      await tester.pumpWidget(_createWidget(mockCountriesCapitalsProvider));
 
       // The first frame is a loading state and should be a progress indicator
       expect(
@@ -139,4 +112,17 @@ void main() {
       }
     });
   });
+}
+
+Widget _createWidget(mockCountriesCapitalsProvider) {
+  return ProviderScope(
+    overrides: [
+      countriesCapitalsProvider.overrideWith(mockCountriesCapitalsProvider),
+    ],
+    child: const MaterialApp(
+      home: Scaffold(
+        body: CountriesCapitalsAsyncLoaderWidget(),
+      ),
+    ),
+  );
 }
