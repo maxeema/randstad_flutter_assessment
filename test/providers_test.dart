@@ -20,6 +20,10 @@ void main() {
       );
     });
 
+    tearDown(() {
+      providerContainer.dispose();
+    });
+
     test(
         'ensure that CountriesRepository.listCountriesCapitals() is called by the provider',
         () async {
