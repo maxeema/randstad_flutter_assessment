@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
@@ -6,70 +8,153 @@ import 'package:randstad_flutter_assessment/repositories/countries_repository.da
 class MockHttpClient extends Mock implements http.Client {}
 
 void main() {
+  final repository = CountriesRepository(client: MockHttpClient());
+
   // setUpAll(() {
-  //   registerFallbackValue(CountriesRepository.countriesCapitalsUri);
+  //   // registerFallbackValue(...);
   // });
+
   group('CountriesRepository', () {
-    test('listCountriesCapitals() returns a list of countries with capitals',
-        () async {
-      // Arrange
-      registerFallbackValue(CountriesRepository.countriesCapitalsUri);
-      final countriesRepository = CountriesRepository(client: MockHttpClient());
+    group('validate listCountriesCapitals() method', () {
+      test(
+          'listCountriesCapitals() returns success result when API responds with 200 OK',
+          () async {
+        // Arrange
+        when(() =>
+                repository.client.get(CountriesRepository.countriesCapitalsUri))
+            .thenAnswer((_) async {
+          return http.Response(
+            jsonEncode({
+              'error': false,
+              'msg': 'Data recieved successfully',
+              'data': [
+                {'name': 'France', 'capital': 'Paris'},
+                {'name': 'Germany', 'capital': 'Berlin'},
+              ],
+            }),
+            200,
+          );
+        });
 
-      // Mock the HTTP response
-      when(() => countriesRepository.client.get(any())).thenAnswer((_) async {
-        return http.Response(
-          '''
-          {
-            "error": false,
-            "data": [
-              {
-                "name": "Brazil",
-                "capital": "Brasília"
-              },
-              {
-                "name": "United States",
-                "capital": "Washington, D.C."
-              }
-            ]
-          }
-          ''',
-          200,
-        );
+        // Act
+        final result = await repository.listCountriesCapitals();
+
+        // Assert
+        expect(result.error, null);
+
+        final data = result.data!;
+        expect(data.length, 2);
+        expect(data[0].name, 'France');
+        expect(data[1].capital, 'Berlin');
       });
 
-      // Act
-      final result = await countriesRepository.listCountriesCapitals();
+      test(
+          'listCountriesCapitals() returns error result when API responds with non-200 status code',
+          () async {
+        // Arrange
+        when(() =>
+                repository.client.get(CountriesRepository.countriesCapitalsUri))
+            .thenAnswer((_) async {
+          return http.Response('Invalid query', 400);
+        });
 
-      // Assert
-      expect(result.error, null);
-      expect(result.data, isNotNull);
-      expect(result.data!.length, 2);
-      expect(result.data![0].name, 'Brazil');
-      expect(result.data![0].capital, 'Brasília');
-      expect(result.data![1].name, 'United States');
-      expect(result.data![1].capital, 'Washington, D.C.');
-    });
+        // Act
+        final result = await repository.listCountriesCapitals();
 
-    test(
-        'listCountriesCapitals() returns an error if the HTTP response is not successful',
-        () async {
-      // Arrange
-      registerFallbackValue(CountriesRepository.countriesCapitalsUri);
-      final countriesRepository = CountriesRepository(client: MockHttpClient());
-
-      // Mock the HTTP response
-      when(() => countriesRepository.client.get(any())).thenAnswer((_) async {
-        return http.Response('Bad response', 500,
-            reasonPhrase: 'Internal server error');
+        // Assert
+        expect(result.error.toString(),
+            contains('Bad response (status code: 400)'));
+        expect(result.data, null);
       });
 
-      // Act and assert
-      final result = await countriesRepository.listCountriesCapitals();
-      expect(result.data, isNull);
-      expect(result.error, isNotNull);
-      expect(result.error, contains('Bad response'));
-      expect(result.error, contains('Internal server error'));
+      test(
+          'listCountriesCapitals() returns error result when API responds with "error": true and filled "msg"',
+          () async {
+        const msg = 'Server is over busy. Try later.';
+        // Arrange
+        when(() =>
+                repository.client.get(CountriesRepository.countriesCapitalsUri))
+            .thenAnswer((_) async {
+          return http.Response(
+            jsonEncode({
+              'error': true,
+              'msg': msg,
+            }),
+            200,
+          );
+        });
+
+        // Act
+        final result = await repository.listCountriesCapitals();
+
+        // Assert
+        expect(result.error.toString(), contains(msg));
+        expect(result.data, null);
+      });
+
+      test(
+          'listCountriesCapitals() returns error result when API responds with "error": true and missing "msg"',
+          () async {
+        // Arrange
+        when(() =>
+                repository.client.get(CountriesRepository.countriesCapitalsUri))
+            .thenAnswer((_) async {
+          return http.Response(
+            jsonEncode({
+              'error': true,
+            }),
+            200,
+          );
+        });
+
+        // Act
+        final result = await repository.listCountriesCapitals();
+
+        // Assert
+        expect(result.error.toString(), contains('Unexpected API error'));
+        expect(result.data, null);
+      });
+
+      test(
+          'listCountriesCapitals() returns error result when API responds with empty "data" list',
+          () async {
+        // Arrange
+        when(() =>
+                repository.client.get(CountriesRepository.countriesCapitalsUri))
+            .thenAnswer((_) async {
+          return http.Response(
+            jsonEncode({
+              'error': false,
+              'data': [],
+            }),
+            200,
+          );
+        });
+
+        // Act
+        final result = await repository.listCountriesCapitals();
+
+        // Assert
+        expect(result.error.toString(), contains('Empty data'));
+        expect(result.data, null);
+      });
+
+      test(
+          'listCountriesCapitals() returns error result when client throws an exception',
+          () async {
+        const reason = 'Platform IO error';
+        // Arrange
+        when(() =>
+                repository.client.get(CountriesRepository.countriesCapitalsUri))
+            .thenThrow(Exception(reason));
+
+        // Act
+        final result = await repository.listCountriesCapitals();
+
+        // Assert
+        expect(result.error.toString(), contains(reason));
+        expect(result.data, null);
+      });
     });
   });
 }
