@@ -9,9 +9,13 @@ You have to implement fetching the list of capitals and representing them in a F
 <h3>API endpoint</h3>
 https://countriesnow.space/api/v0.1/countries/capital
 
-<h3>Run the app</h3>
+<h3>Run the app (Web)</h3>
 
 > flutter run -d chrome
+
+<h3>Run the app (MacOS)</h3>
+
+> flutter run -d macos
 
 <h3>Run tests</h3>
 
