@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:randstad_flutter_assessment/providers.dart';
 import 'package:randstad_flutter_assessment/repositories/countries_repository.dart';
+import 'package:randstad_flutter_assessment/repositories/country.dart';
 
 class MockCountriesRepository extends Mock implements CountriesRepository {}
 
@@ -43,6 +44,35 @@ void main() {
 
       // Assert
       verify(() => repository.listCountriesCapitals()).called(1);
+    });
+
+    test(
+        'ensure the provider has no value then gets the listCountriesCapitals() result',
+        () async {
+      // Arrange
+      final repository = providerContainer.read(countriesRepositoryProvider)
+          as MockCountriesRepository;
+
+      const mockAnswer = (error: null, data: <Country>[]);
+
+      when(() => repository.listCountriesCapitals())
+          .thenAnswer((_) async => mockAnswer);
+
+      // ensure the provider has no value by default
+      var state = providerContainer.read(countriesCapitalsProvider);
+      expect(state.hasValue, false);
+      expect(state.isLoading, true);
+
+      // Act
+      await providerContainer.read(countriesCapitalsProvider.future);
+
+      // Assert
+      state = providerContainer.read(countriesCapitalsProvider);
+      expect(state.isLoading, false);
+      expect(state.hasValue, true);
+
+      // ensure the provider has value that is same to mock answer
+      expect(state.value, mockAnswer);
     });
   });
 }
