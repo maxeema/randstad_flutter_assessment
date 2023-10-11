@@ -14,10 +14,8 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
 
   @override
   Widget build(context, ref) {
-    final result = ref.watch(countriesCapitalsProvider);
-    final isLoading = !result.hasValue;
-    // Loading data
-    if (isLoading) {
+    final state = ref.watch(countriesCapitalsProvider);
+    if (state.isLoading || !state.hasValue) {
       return const Column(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -34,10 +32,35 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
         ],
       );
     }
-    // Got error
-    final value = result.requireValue;
-    if (value.error != null) {
-      final error = value.error!;
+    //
+    final (:error, :data) = state.requireValue;
+    if (data != null) {
+      final countries = data;
+      return ListView.builder(
+        key: countriesListKey,
+        itemCount: countries.length,
+        itemBuilder: (context, index) {
+          final country = countries[index];
+          return Card(
+            key: Key('country-${country.name}'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Text.rich(TextSpan(children: [
+                TextSpan(
+                  text: country.name,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
+                const TextSpan(text: ' '),
+                TextSpan(
+                  text: country.capital,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ])),
+            ),
+          );
+        },
+      );
+    } else {
       return Column(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -57,35 +80,17 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
                 style: const TextStyle(fontWeight: FontWeight.normal),
               ),
             ]),
-          )
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () async {
+              // Retry the data fetch.
+              ref.invalidate(countriesCapitalsProvider);
+            },
+            child: const Text('Retry'),
+          ),
         ],
       );
     }
-    // Got data
-    final countries = value.data!;
-    return ListView.builder(
-      key: countriesListKey,
-      itemCount: countries.length,
-      itemBuilder: (context, idx) {
-        final country = countries[idx];
-        return Card(
-          key: Key('country-${country.name}'),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Text.rich(TextSpan(children: [
-              TextSpan(
-                text: country.name,
-                style: const TextStyle(fontWeight: FontWeight.normal),
-              ),
-              const TextSpan(text: ' '),
-              TextSpan(
-                text: country.capital,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ])),
-          ),
-        );
-      },
-    );
   }
 }
