@@ -5,20 +5,24 @@ import 'package:randstad_flutter_assessment/providers.dart';
 import 'package:randstad_flutter_assessment/repositories/country.dart';
 import 'package:randstad_flutter_assessment/ui/countries_capitals_async_loader_widget.dart';
 
+import '../test_helpers.dart';
+
 void main() {
+  final progressFinder =
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey);
+
   group('CountriesCapitalsAsyncLoaderWidget', () {
-    // Test that the widget displays a loading indicator when the countriesCapitalsProvider is not yet resolved.
     testWidgets(
         'Displays loading indicator when countriesCapitalsProvider is not yet resolved',
         (tester) async {
       // Create a mock countriesCapitalsProvider
-      mockCountriesCapitalsProvider(ref) async {
+      providerOverride(ref) async {
         // No need in error or data because we just test that progress indicator appears first.
         return (error: null, data: null);
       }
 
       // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(_createWidget(mockCountriesCapitalsProvider));
+      await tester.pumpWidget(_createWidget(providerOverride));
 
       // Expect to find a progress indicator
       expect(
@@ -34,61 +38,21 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
     });
 
-    // Test that the widget displays an error message when the countriesCapitalsProvider emits an error.
-    testWidgets(
-        'Displays error message when countriesCapitalsProvider emits an error',
-        (tester) async {
-      const someError = 'Something bad happened.';
-      // Create a mock countriesCapitalsProvider that emits an error.
-      mockCountriesCapitalsProvider(ref) async {
-        return (error: someError, data: null);
-      }
-
-      // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(_createWidget(mockCountriesCapitalsProvider));
-
-      // The first frame is a loading state and should be a progress indicator
-      expect(
-        find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
-        findsOneWidget,
-      );
-      // expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      // Re-render. Await for the progress indicator animation completion.
-      await tester.pumpAndSettle();
-
-      // Ensure there is no longer loading state.
-      expect(
-        find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
-        findsNothing,
-      );
-      // expect(find.byType(CircularProgressIndicator), findsNothing);
-
-      // Expect to find a Text widget with an error message.
-      expect(
-        find.byKey(CountriesCapitalsAsyncLoaderWidget.errorMessageKey),
-        findsOneWidget,
-      );
-
-      // Ensure that the error reason is displayed as well.
-      expect(find.textContaining(someError), findsOneWidget);
-    });
-
-    // Test that the widget displays a list of countries and capitals when the countriesCapitalsProvider emits a success result with data.
     testWidgets(
         'Displays list of countries and capitals when countriesCapitalsProvider emits a success result with data',
         (tester) async {
-      // Create a mock countriesCapitalsProvider that emits a success result with data.
-      const data = [
+      const mockData = [
         Country(name: 'France', capital: 'Paris'),
         Country(name: 'Germany', capital: 'Berlin'),
       ];
-      mockCountriesCapitalsProvider(ref) async {
-        return (error: null, data: data);
+
+      // Create a mock countriesCapitalsProvider that emits a success result with data.
+      providerOverride(ref) async {
+        return (error: null, data: mockData);
       }
 
       // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(_createWidget(mockCountriesCapitalsProvider));
+      await tester.pumpWidget(_createWidget(providerOverride));
 
       // The first frame is a loading state and should be a progress indicator
       expect(
@@ -107,17 +71,123 @@ void main() {
       );
 
       // Ensure all the countries are displayed.
-      for (var country in data) {
+      for (var country in mockData) {
         expect(find.byKey(Key('country-${country.name}')), findsOneWidget);
       }
     });
   });
+
+  testWidgets(
+      'Displays error message when countriesCapitalsProvider emits an error',
+      (tester) async {
+    const mockError = 'Mock error occurred.';
+
+    // Create a mock countriesCapitalsProvider that emits an error.
+    providerOverride(ref) async {
+      return (error: mockError, data: null);
+    }
+
+    // Render the widget with the mock countriesCapitalsProvider.
+    await tester.pumpWidget(_createWidget(providerOverride));
+
+    // The first frame is a loading state and should be a progress indicator
+    expect(
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
+      findsOneWidget,
+    );
+    // expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Re-render. Await for the progress indicator animation completion.
+    await tester.pumpAndSettle();
+
+    // Ensure there is no longer loading state.
+    expect(
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
+      findsNothing,
+    );
+    // expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    // Expect to find a Text widget with an error message.
+    expect(
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.errorMessageKey),
+      findsOneWidget,
+    );
+
+    // Ensure that the error reason is displayed as well.
+    expect(find.textContaining(mockError), findsOneWidget);
+  });
+
+  testWidgets(
+      'Tap Retry and re-fetch data when appears when countriesCapitalsProvider emits an error',
+      (tester) async {
+    var firstFetch = true;
+    const mockError = 'Mock error occurred.';
+    const mockData = [
+      Country(name: 'USA', capital: 'Washington'),
+      Country(name: 'Brazil', capital: 'Brasília'),
+    ];
+
+    // Create a mock countriesCapitalsProvider that emits an error.
+    providerOverride(ref) async {
+      // Emulate some delay.
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (firstFetch) {
+        firstFetch = false;
+        return (error: mockError, data: null);
+      } else {
+        return (error: null, data: mockData);
+      }
+    }
+
+    // Render the widget with the mock countriesCapitalsProvider.
+    await tester.pumpWidget(_createWidget(providerOverride));
+
+    // Re-render. Await for the progress indicator animation completion.
+    await tester.pumpAndSettle();
+
+    // Ensure there is no longer loading state.
+    expect(
+      progressFinder,
+      findsNothing,
+    );
+
+    // Ensure the "Retry" button appeared
+    expect(
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.retryButtonKey),
+      findsOneWidget,
+    );
+
+    // Tap the "Retry" button
+    await tester
+        .tap(find.byKey(CountriesCapitalsAsyncLoaderWidget.retryButtonKey));
+
+    // Await UI rebuild.
+    await tester.pump();
+
+    // Ensure the progress indicator appeared.
+    expect(progressFinder, findsOneWidget);
+
+    // Ensure UI rerendered to the progress indicator appear.
+    // Wait for the second fetching completion. It could be detected that the progress bar disappeared.
+    await until(tester, () {
+      return progressFinder.evaluate().firstOrNull?.widget == null;
+    });
+
+    // Ensure that data appeared after retrying to fetch data again
+    expect(find.byKey(CountriesCapitalsAsyncLoaderWidget.countriesListKey),
+        findsOneWidget);
+
+    // Ensure all the countries are displayed.
+    for (var country in mockData) {
+      expect(find.byKey(Key('country-${country.name}')), findsOneWidget);
+    }
+  });
 }
 
-Widget _createWidget(mockCountriesCapitalsProvider) {
+Widget _createWidget(providerOverride) {
   return ProviderScope(
     overrides: [
-      countriesCapitalsProvider.overrideWith(mockCountriesCapitalsProvider),
+      countriesCapitalsProvider.overrideWith(providerOverride),
     ],
     child: const MaterialApp(
       home: Scaffold(
