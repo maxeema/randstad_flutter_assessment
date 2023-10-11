@@ -4,11 +4,13 @@ import 'package:randstad_flutter_assessment/providers.dart';
 
 class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
   @visibleForTesting
-  static const errorMessageKey = Key('error-message');
-  @visibleForTesting
   static const progressIndicatorKey = Key('progress-indicator');
   @visibleForTesting
   static const countriesListKey = Key('countries-list');
+  @visibleForTesting
+  static const errorMessageKey = Key('error-message');
+  @visibleForTesting
+  static const retryButtonKey = Key('retry-button');
 
   const CountriesCapitalsAsyncLoaderWidget({super.key});
 
@@ -83,6 +85,7 @@ class CountriesCapitalsAsyncLoaderWidget extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
+            key: retryButtonKey,
             onPressed: () async {
               // Retry the data fetch.
               ref.invalidate(countriesCapitalsProvider);
