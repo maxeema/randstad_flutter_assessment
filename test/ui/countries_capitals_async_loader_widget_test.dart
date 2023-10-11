@@ -87,7 +87,7 @@ void main() {
     await tester.pumpWidget(_createWidget(providerOverride));
 
     // The first frame is a loading state and should be a progress indicator
-    expect(listFinder, findsOneWidget);
+    expect(progressFinder, findsOneWidget);
 
     // Re-render. Await for the progress indicator animation completion.
     await tester.pumpAndSettle();
