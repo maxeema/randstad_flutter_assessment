@@ -1,18 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
 
-/// Waits until the given predicate returns true.
-/// Note! Avoid using this call directly in widget tests, e.g. in testWidgets()
-/// where await Future.delayed() freezes the test execution.
-Future<void> untilTrue(bool predicate(), {Duration? interval}) async {
-  while (!predicate()) {
-    await Future.delayed(interval ?? const Duration(milliseconds: 50));
+extension WidgetTesterX on WidgetTester {
+  /// Wait for widget appearance in the widget tree.
+  /// Use it like that:
+  ///  await tester.waitFor(find.byKey(key));
+  Future waitFor(Finder finder) async {
+    while (finder.evaluate().isEmpty) {
+      await pump(const Duration(milliseconds: 20));
+    }
+  }
+
+  /// Wait for widget removal from the widget tree.
+  /// Use it like that:
+  ///  await tester.waitFor(find.byKey(key));
+  Future waitForNo(Finder finder) async {
+    while (finder.evaluate().isNotEmpty) {
+      await pump(const Duration(milliseconds: 20));
+    }
   }
 }
 
-/// Waits in widget testing until the given predicate returns true.
-Future<void> until(WidgetTester tester, bool predicate(),
-    {Duration? interval}) async {
+/// Waits until the given predicate returns true.
+///
+/// Note! Avoid using this call directly in widget tests, e.g. in testWidgets()
+/// where the "await Future.delayed(..)" call freezes the test execution
+/// because Flutter widget tests are ran in a FakeAsync (mock clock) by default.
+/// Otherwise, use it like that:
+///  await tester.runAsync(() => untilTrue(() => ...));
+Future<void> untilTrue(bool predicate(), {Duration? interval}) async {
   while (!predicate()) {
-    await tester.pump(interval ?? const Duration(milliseconds: 50));
+    await Future.delayed(interval ?? const Duration(milliseconds: 50));
   }
 }
