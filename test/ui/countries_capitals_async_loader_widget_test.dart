@@ -10,6 +10,12 @@ import '../test_helpers.dart';
 void main() {
   final progressFinder =
       find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey);
+  final listFinder =
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.countriesListKey);
+  final errorFinder =
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.errorMessageKey);
+  final retryFinder =
+      find.byKey(CountriesCapitalsAsyncLoaderWidget.retryButtonKey);
 
   group('CountriesCapitalsAsyncLoaderWidget', () {
     testWidgets(
@@ -25,10 +31,7 @@ void main() {
       await tester.pumpWidget(_createWidget(providerOverride));
 
       // Expect to find a progress indicator
-      expect(
-        find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
-        findsOneWidget,
-      );
+      expect(progressFinder, findsOneWidget);
       // expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       // Let's finish test without errors or we will get the
@@ -55,20 +58,13 @@ void main() {
       await tester.pumpWidget(_createWidget(providerOverride));
 
       // The first frame is a loading state and should be a progress indicator
-      expect(
-        find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
-        findsOneWidget,
-      );
-      // expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(progressFinder, findsOneWidget);
 
       // Re-render. Await for the progress indicator animation completion.
       await tester.pumpAndSettle();
 
       // Expect to find a ListView with countries.
-      expect(
-        find.byKey(CountriesCapitalsAsyncLoaderWidget.countriesListKey),
-        findsOneWidget,
-      );
+      expect(listFinder, findsOneWidget);
 
       // Ensure all the countries are displayed.
       for (var country in mockData) {
@@ -91,27 +87,17 @@ void main() {
     await tester.pumpWidget(_createWidget(providerOverride));
 
     // The first frame is a loading state and should be a progress indicator
-    expect(
-      find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
-      findsOneWidget,
-    );
-    // expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(listFinder, findsOneWidget);
 
     // Re-render. Await for the progress indicator animation completion.
     await tester.pumpAndSettle();
 
     // Ensure there is no longer loading state.
-    expect(
-      find.byKey(CountriesCapitalsAsyncLoaderWidget.progressIndicatorKey),
-      findsNothing,
-    );
+    expect(progressFinder, findsNothing);
     // expect(find.byType(CircularProgressIndicator), findsNothing);
 
     // Expect to find a Text widget with an error message.
-    expect(
-      find.byKey(CountriesCapitalsAsyncLoaderWidget.errorMessageKey),
-      findsOneWidget,
-    );
+    expect(errorFinder, findsOneWidget);
 
     // Ensure that the error reason is displayed as well.
     expect(find.textContaining(mockError), findsOneWidget);
@@ -146,20 +132,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // Ensure there is no longer loading state.
-    expect(
-      progressFinder,
-      findsNothing,
-    );
+    expect(progressFinder, findsNothing);
 
     // Ensure the "Retry" button appeared
-    expect(
-      find.byKey(CountriesCapitalsAsyncLoaderWidget.retryButtonKey),
-      findsOneWidget,
-    );
+    expect(retryFinder, findsOneWidget);
 
     // Tap the "Retry" button
-    await tester
-        .tap(find.byKey(CountriesCapitalsAsyncLoaderWidget.retryButtonKey));
+    await tester.tap(retryFinder);
 
     // Await UI rebuild.
     await tester.pump();
@@ -174,8 +153,7 @@ void main() {
     });
 
     // Ensure that data appeared after retrying to fetch data again
-    expect(find.byKey(CountriesCapitalsAsyncLoaderWidget.countriesListKey),
-        findsOneWidget);
+    expect(listFinder, findsOneWidget);
 
     // Ensure all the countries are displayed.
     for (var country in mockData) {
