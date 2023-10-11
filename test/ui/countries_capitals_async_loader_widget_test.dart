@@ -17,56 +17,74 @@ void main() {
   final retryFinder =
       find.byKey(CountriesCapitalsAsyncLoaderWidget.retryButtonKey);
 
+  const mockError = 'Mock error occurred.';
+  const mockData = [
+    Country(name: 'France', capital: 'Paris'),
+    Country(name: 'Germany', capital: 'Berlin'),
+  ];
+
   group('CountriesCapitalsAsyncLoaderWidget', () {
-    testWidgets(
-        'Displays loading indicator when countriesCapitalsProvider is not yet resolved',
+    testWidgets('loading indicator works correctly when provider return error',
         (tester) async {
-      // Create a mock countriesCapitalsProvider
-      providerOverride(ref) async {
-        // No need in error or data because we just test that progress indicator appears first.
-        return (error: null, data: null);
+      mockProviderOverride(ref) async {
+        return (error: mockError, data: null);
       }
 
-      // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(_createWidget(providerOverride));
-
-      // Expect to find a progress indicator
+      await tester.pumpWidget(_createWidget(mockProviderOverride));
       expect(progressFinder, findsOneWidget);
-      // expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      // Let's finish test without errors or we will get the
-      // "A Timer is still pending even after the widget tree was disposed."
-      // error caused by progress indicator Timer calls.
-      await tester.pumpWidget(const Placeholder());
-      await tester.pump(const Duration(seconds: 1));
+      await tester.waitForNo(progressFinder);
+      expect(progressFinder, findsNothing);
     });
-
-    testWidgets(
-        'Displays list of countries and capitals when countriesCapitalsProvider emits a success result with data',
+    testWidgets('loading indicator works correctly when provider returns data',
         (tester) async {
-      const mockData = [
-        Country(name: 'France', capital: 'Paris'),
-        Country(name: 'Germany', capital: 'Berlin'),
-      ];
-
-      // Create a mock countriesCapitalsProvider that emits a success result with data.
-      providerOverride(ref) async {
+      mockProviderOverride(ref) async {
         return (error: null, data: mockData);
       }
 
-      // Render the widget with the mock countriesCapitalsProvider.
-      await tester.pumpWidget(_createWidget(providerOverride));
+      await tester.pumpWidget(_createWidget(mockProviderOverride));
 
-      // The first frame is a loading state and should be a progress indicator
       expect(progressFinder, findsOneWidget);
+      await tester.waitForNo(progressFinder);
+      expect(progressFinder, findsNothing);
+    });
 
-      // Re-render. Await for the progress indicator animation completion.
-      await tester.pumpAndSettle();
+    testWidgets('error appears when provider returns error', (tester) async {
+      mockProviderOverride(ref) async {
+        return (error: mockError, data: null);
+      }
 
-      // Expect to find a ListView with countries.
+      await tester.pumpWidget(_createWidget(mockProviderOverride));
+
+      expect(errorFinder, findsNothing);
+      await tester.waitFor(errorFinder);
+      expect(errorFinder, findsOneWidget);
+      expect(find.textContaining(mockError), findsOneWidget);
+    });
+
+    testWidgets('error doesn\'t appear when provider returns data',
+        (tester) async {
+      mockProviderOverride(ref) async {
+        return (error: null, data: mockData);
+      }
+
+      await tester.pumpWidget(_createWidget(mockProviderOverride));
+      expect(errorFinder, findsNothing);
+      await tester.waitFor(listFinder);
+      expect(errorFinder, findsNothing);
+    });
+
+    testWidgets(
+        'list of countries and capitals appears when provider returns data',
+        (tester) async {
+      mockProviderOverride(ref) async {
+        return (error: null, data: mockData);
+      }
+
+      await tester.pumpWidget(_createWidget(mockProviderOverride));
+
+      expect(listFinder, findsNothing);
+      await tester.waitFor(listFinder);
       expect(listFinder, findsOneWidget);
-
-      // Ensure all the countries are displayed.
       for (var country in mockData) {
         expect(find.byKey(Key('country-${country.name}')), findsOneWidget);
       }
@@ -74,49 +92,25 @@ void main() {
   });
 
   testWidgets(
-      'Displays error message when countriesCapitalsProvider emits an error',
+      'list of countries and capitals doesn\'t appear when provider returns error',
       (tester) async {
-    const mockError = 'Mock error occurred.';
-
-    // Create a mock countriesCapitalsProvider that emits an error.
-    providerOverride(ref) async {
+    mockProviderOverride(ref) async {
       return (error: mockError, data: null);
     }
 
-    // Render the widget with the mock countriesCapitalsProvider.
-    await tester.pumpWidget(_createWidget(providerOverride));
+    await tester.pumpWidget(_createWidget(mockProviderOverride));
 
-    // The first frame is a loading state and should be a progress indicator
-    expect(progressFinder, findsOneWidget);
-
-    // Re-render. Await for the progress indicator animation completion.
-    await tester.pumpAndSettle();
-
-    // Ensure there is no longer loading state.
-    expect(progressFinder, findsNothing);
-    // expect(find.byType(CircularProgressIndicator), findsNothing);
-
-    // Expect to find a Text widget with an error message.
-    expect(errorFinder, findsOneWidget);
-
-    // Ensure that the error reason is displayed as well.
-    expect(find.textContaining(mockError), findsOneWidget);
+    expect(listFinder, findsNothing);
+    await tester.waitForNo(progressFinder);
+    expect(listFinder, findsNothing);
   });
 
-  testWidgets(
-      'Tap Retry and re-fetch data when appears when countriesCapitalsProvider emits an error',
+  testWidgets('tap Retry to re-fetch data when provider returned error',
       (tester) async {
     var firstFetch = true;
-    const mockError = 'Mock error occurred.';
-    const mockData = [
-      Country(name: 'USA', capital: 'Washington'),
-      Country(name: 'Brazil', capital: 'Brasília'),
-    ];
-
-    // Create a mock countriesCapitalsProvider that emits an error.
     providerOverride(ref) async {
-      // Emulate some delay.
-      await Future.delayed(const Duration(milliseconds: 300));
+      // Emulate some delay
+      await Future.delayed(const Duration(milliseconds: 100));
       if (firstFetch) {
         firstFetch = false;
         return (error: mockError, data: null);
@@ -125,37 +119,18 @@ void main() {
       }
     }
 
-    // Render the widget with the mock countriesCapitalsProvider.
     await tester.pumpWidget(_createWidget(providerOverride));
 
-    // Re-render. Await for the progress indicator animation completion.
-    await tester.pumpAndSettle();
-
-    // Ensure there is no longer loading state.
-    expect(progressFinder, findsNothing);
-
-    // Ensure the "Retry" button appeared
+    await tester.waitFor(errorFinder);
     expect(retryFinder, findsOneWidget);
 
-    // Tap the "Retry" button
     await tester.tap(retryFinder);
-
-    // Await UI rebuild.
     await tester.pump();
 
-    // Ensure the progress indicator appeared.
-    expect(progressFinder, findsOneWidget);
-
-    // Ensure UI rerendered to the progress indicator appear.
-    // Wait for the second fetching completion. It could be detected that the progress bar disappeared.
-    await until(tester, () {
-      return progressFinder.evaluate().firstOrNull?.widget == null;
-    });
-
-    // Ensure that data appeared after retrying to fetch data again
+    expect(retryFinder, findsNothing);
+    await tester.waitFor(listFinder);
     expect(listFinder, findsOneWidget);
 
-    // Ensure all the countries are displayed.
     for (var country in mockData) {
       expect(find.byKey(Key('country-${country.name}')), findsOneWidget);
     }
