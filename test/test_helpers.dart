@@ -18,6 +18,15 @@ extension WidgetTesterX on WidgetTester {
       await pump(const Duration(milliseconds: 20));
     }
   }
+
+  /// Wait until the predicate() returned true first time.
+  /// Use it like that:
+  ///  await tester.untilTrue(() => ...);
+  Future untilTrue(bool predicate()) async {
+    while (!predicate()) {
+      await pump(const Duration(milliseconds: 20));
+    }
+  }
 }
 
 /// Waits until the given predicate returns true.
